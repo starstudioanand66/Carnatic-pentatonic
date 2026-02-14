@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIRTUOSO 2D - 21 Essential Ragas (Carnatic Style)</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-sub: #b0b0b0;
+            --accent-blue: #2979ff;
+            --accent-red: #d50000;
+            --piano-white: #fdfdfd;
+            --piano-black: #111;
+            --root-highlight: #ff5252;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* Main Application Container */
+        .app-container {
+            background-color: var(--panel-bg);
+            width: 950px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            border: 1px solid #333;
+        }
+
+        /* --- Header Section --- */
+        .header-display {
+            text-align: center;
+            width: 100%;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .scale-title {
+            font-size: 2.5rem;
+            font-weight: bold; 
+            margin: 0 0 10px 0;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .raga-subtitle {
+            font-size: 1.1rem;
+            font-weight: bold; 
+            color: var(--text-sub);
+            margin: 0;
+        }
+
+        /* --- Controls Section --- */
+        .controls-panel {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            align-items: center;
+        }
+
+        /* Form Elements */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        select {
+            appearance: none;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+            color: white;
+            min-width: 100px;
+            position: relative;
+            top: 0;
+        }
+
+        .btn:active { transform: translateY(2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: translateY(2px); box-shadow: none !important; }
+
+        .btn-play { 
+            background: linear-gradient(to bottom, #448aff, #2979ff);
+            box-shadow: 0 4px 0 #005ecb, 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn-stop { 
+            background: linear-gradient(to bottom, #ff5252, #d50000);
+            box-shadow: 0 4px 0 #9a0007, 0 5px 10px rgba(0,0,0,0.3);
+        }
+        
+        /* MIDI Button Specific */
+        .btn-midi {
+            background: linear-gradient(to bottom, #66bb6a, #43a047);
+            box-shadow: 0 4px 0 #2e7d32, 0 5px 10px rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            font-size: 0.8rem;
+        }
+
+        .midi-status {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .midi-status.connected { color: #66bb6a; }
+
+        /* Slider */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            border: 2px solid #fff;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        /* --- 3D Piano Section --- */
+        .piano-wrapper {
+            position: relative;
+            background: #050505;
+            padding: 20px 20px 0 20px; /* Top padding for the felt rail */
+            border-radius: 4px;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
+            overflow-x: auto;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            border-top: 8px solid #300; /* Red felt strip */
+        }
+
+        .piano-keys {
+            position: relative;
+            height: 240px;
+        }
+
+        .key {
+            position: absolute;
+            top: 0;
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            transition: background-color 0.05s, transform 0.05s, box-shadow 0.05s;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* 3D White Key */
+        .white-key {
+            width: 42px;
+            height: 220px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 90%, #dcdcdc 100%);
+            border: 1px solid #aaa;
+            border-top: none;
+            z-index: 1;
+            color: #555;
+            /* 3D Shadow effect */
+            box-shadow: inset 0 -4px 0px #999, 2px 4px 5px rgba(0,0,0,0.4);
+        }
+
+        /* 3D Black Key */
+        .black-key {
+            width: 26px;
+            height: 140px;
+            background: linear-gradient(to right, #222, #000 40%, #333);
+            border: 1px solid #000;
+            z-index: 2;
+            box-shadow: 2px 4px 5px rgba(0,0,0,0.6);
+            border-bottom: 4px solid #000;
+        }
+
+        /* Active States (Simulating Press) */
+        .key.active {
+            transform: translateY(4px) !important;
+            background: var(--accent-blue) !important;
+            box-shadow: none !important;
+            border: 1px solid #0056b3 !important;
+            color: white;
+        }
+
+        .key.active::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(0,0,0,0.1));
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Root Indicator "Sa" */
+        .key.root::before {
+            content: 'Sa';
+            position: absolute;
+            bottom: 40px;
+            background: var(--root-highlight);
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 3;
+        }
+        
+        .key.black-key.root::before {
+            bottom: 30px;
+            font-size: 9px;
+            padding: 2px 4px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header-display">
+            <h1 class="scale-title" id="display-scale-name">C Major</h1>
+            <p class="raga-subtitle" id="display-raga-name">Melakarta #1 - Sa: C</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls-panel">
+            <!-- Dropdowns -->
+            <div class="control-group">
+                <div class="control-label">Raga (21 Essentials)</div>
+                <select id="scale-select">
+                    <!-- Populated by JS -->
+                </select>
+                
+                <div class="control-label" style="margin-top:10px;">Instrument</div>
+                <select id="instrument-select">
+                    <option value="piano">Grand Piano</option>
+                    <option value="flute">Carnatic Flute</option>
+                    <option value="violin">Carnatic Violin</option>
+                    <option value="strings">Strings</option>
+                    <option value="sax">Saxophone</option>
+                    <option value="mandolin">Mandolin</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group" style="flex-direction: column;">
+                <div class="button-group" style="flex-direction: row;">
+                    <button class="btn btn-play" id="btn-play">Play</button>
+                    <button class="btn btn-stop" id="btn-stop" disabled>Stop</button>
+                </div>
+                <button class="btn btn-midi" id="btn-midi-connect">Connect MIDI</button>
+                <div id="midi-status" class="midi-status">Not Connected</div>
+            </div>
+
+            <!-- Root & Speed -->
+            <div class="control-group">
+                <div class="control-label">Root Note</div>
+                <select id="root-select">
+                    <!-- Populated by JS -->
+                </select>
+
+                <div class="slider-group" style="margin-top:10px;">
+                    <div class="control-label">Speed (BPM): <span id="bpm-display" style="color:var(--accent-blue); float:right;">120</span></div>
+                    <input type="range" id="bpm-slider" min="60" max="240" value="120" step="10">
+                </div>
+            </div>
+        </div>
+
+        <!-- Piano -->
+        <div class="piano-wrapper">
+            <div class="piano-keys" id="piano-container">
+                <!-- Keys generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const OCTAVES = 3;
+        const START_OCTAVE = 3; // C3
+        const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const WHITE_KEY_WIDTH = 42;
+        const BLACK_KEY_WIDTH = 26;
+        
+        // Scale Logic - Replaced with requested 21 Ragas
+        const SCALES = [
+            // 1. The "Big Two" (Pentatonic)
+            {
+                "name": "Mohanam (Major Pentatonic)",
+                "raga": "The most popular Carnatic raga",
+                "intervals": [2, 2, 3, 2, 3] // C-D-E-G-A
+            },
+            {
+                "name": "Suddha Dhanyasi (Minor Pentatonic)",
+                "raga": "Minor Pentatonic",
+                "intervals": [3, 2, 2, 4, 3] // C-Eb-F-G-Bb
+            },
+            // 2. The "Major" Group
+            {
+                "name": "Hamsadhwani",
+                "raga": "Very popular opening raga",
+                "intervals": [2, 2, 3, 4, 1] // C-D-E-G-B (No F, A)
+            },
+            {
+                "name": "Suddha Saveri",
+                "raga": "Peaceful",
+                "intervals": [2, 2, 2, 2, 3] // C-D-F-G-A (No E, B)
+            },
+            {
+                "name": "Abhogi",
+                "raga": "Bright but serious",
+                "intervals": [2, 3, 1, 4, 3] // C-D-Eb-F-A (No G, B)
+            },
+            {
+                "name": "Valaji",
+                "raga": "Airy and spacious",
+                "intervals": [4, 3, 2, 2, 3] // C-E-G-A-Bb (No F, A)
+            },
+            {
+                "name": "Amritavarshini",
+                "raga": "The 'Rain' Raga",
+                "intervals": [4, 2, 1, 4, 1] // C-E-F#-G-B
+            },
+            // 3. The "Minor" Group
+            {
+                "name": "Hindolam",
+                "raga": "Beautiful and haunting",
+                "intervals": [3, 2, 4, 2, 3] // C-Eb-F-Ab-Bb
+            },
+            {
+                "name": "Madhyamavati",
+                "raga": "Highly auspicious",
+                "intervals": [2, 2, 2, 4, 3] // C-D-F-G-Bb
+            },
+            {
+                "name": "Udayaravichandrika",
+                "raga": "Variation of Suddha Dhanyasi",
+                "intervals": [3, 2, 2, 4, 1] // C-Eb-F-G-B
+            },
+            {
+                "name": "Shivaranjani",
+                "raga": "Sentimental and Sad",
+                "intervals": [2, 3, 4, 2, 3] // C-D-Eb-G-A
+            },
+            // 4. The "Exotic" Group
+            {
+                "name": "Revathi",
+                "raga": "Very powerful/Vedic sounding",
+                "intervals": [1, 4, 2, 4, 3] // C-Db-F-G-Bb
+            },
+            {
+                "name": "Bauli",
+                "raga": "Morning raga",
+                "intervals": [1, 3, 4, 2, 4] // C-Db-E-G-Ab
+            },
+            {
+                "name": "Malayamarutam",
+                "raga": "Similar to Bauli",
+                "intervals": [1, 3, 4, 4, 3] // C-Db-E-G-Bb
+            },
+            {
+                "name": "Saveri",
+                "raga": "Intense emotion",
+                "intervals": [1, 4, 2, 2, 4] // C-Db-F-G-Ab
+            },
+            {
+                "name": "Bhupalam",
+                "raga": "Very ancient scale",
+                "intervals": [1, 3, 4, 2, 4] // C-Db-Eb-G-Ab
+            },
+            // 5. The "Prati Madhyama" Group (Sharp 4)
+            {
+                "name": "Ranjani",
+                "raga": "Very melodious",
+                "intervals": [2, 3, 4, 4, 4] // C-D-Eb-F#-A
+            },
+            {
+                "name": "Hamsanada",
+                "raga": "Omits 3rd entirely",
+                "intervals": [2, 4, 1, 4, 1] // C-D-F#-G-B
+            },
+            {
+                "name": "Niroshta",
+                "raga": "No Lips (No Ma or Pa)",
+                "intervals": [2, 2, 5, 2, 1] // C-D-E-A-B
+            }
+        ];
+
+        // --- State ---
+        let currentRootIdx = 0; // 0 = C
+        let currentScaleIdx = 0; 
+        let currentInstrument = 'piano';
+        let isPlaying = false;
+        let playbackSpeed = 120; // BPM
+        let audioCtx = null;
+        let stopRequested = false;
+        let lastPlayedFreq = 0; // For Gamakam (Meend/Sliding)
+
+        // --- MIDI State ---
+        let midiAccess = null;
+        let midiInput = null;
+        let activeMidiNotes = {}; // Tracks playing oscillators for MIDI key release
+
+        // --- Audio System (Web Audio API) ---
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function midiToFreq(midiNote) {
+            return 440 * Math.pow(2, (midiNote - 69) / 12);
+        }
+
+        // --- Instrument Synthesis Helpers (Shared by Sequencer and MIDI) ---
+        function addVibrato(osc, depth, rate) {
+            // Creates an LFO that keeps running (for MIDI sustain)
+            const lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.value = rate; 
+
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = depth; 
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+            
+            lfo.start();
+            // Note: We do NOT stop --> LFO here, it runs until --> Osc stops
+            return { lfo, lfoGain };
+        }
+
+        function playTone(midiNote, duration, instrument) {
+            if (!audioCtx) return;
+
+            const targetFreq = midiToFreq(midiNote);
+            const now = audioCtx.currentTime;
+            
+            // --- Gamakam / Meend Logic (Slide) ---
+            // If there was a previous note, slide from that pitch to the new pitch
+            const useSlide = (instrument !== 'piano' && instrument !== 'mandolin' && lastPlayedFreq > 0);
+            const slideTime = useSlide ? 0.15 : 0.01; // 150ms slide for strings/flute
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            // --- Instrument Synthesis Settings ---
+            switch(instrument) {
+                case 'grand piano':
+                case 'piano':
+                    osc.type = 'triangle';
+                    // Fast attack, long decay
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.6, now + 0.02); 
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                    
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    break;
+
+                case 'flute':
+                    osc.type = 'sine';
+                    // Slow attack, airy
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.4, now + 0.1); // Breath attack
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + duration);
+                    
+                    // Slide + Vibrato
+                    if (useSlide) {
+                        osc.frequency.setValueAtTime(lastPlayedFreq, now);
+                        osc.frequency.linearRampToValueAtTime(targetFreq, now + slideTime);
+                    } else {
+                        osc.frequency.setValueAtTime(targetFreq, now);
+                    }
+                    const vibratoNodes = addVibrato(osc, 5, 6);
+                    setTimeout(() => {
+                        vibratoNodes.lfo.stop(); 
+                        vibratoNodes.lfoGain.disconnect();
+                    }, duration * 1000);
+                    break;
+
+                case 'violin':
+                    osc.type = 'sawtooth';
+                    // Filter to make it softer
+                    const violinFilter = audioCtx.createBiquadFilter();
+                    violinFilter.type = 'lowpass';
+                    violinFilter.frequency.value = 3000;
+                    violinFilter.Q.value = 1;
+                    
+                    osc.connect(violinFilter);
+                    violinFilter.connect(gainNode);
+
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05); // Bow attack
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + duration);
+
+                    // Slide + Vibrato
+                    if (useSlide) {
+                        osc.frequency.setValueAtTime(lastPlayedFreq, now);
+                        osc.frequency.linearRampToValueAtTime(targetFreq, now + slideTime);
+                    } else {
+                        osc.frequency.setValueAtTime(targetFreq, now);
+                    }
+                    const vibNodes = addVibrato(osc, 8, 5);
+                    setTimeout(() => {
+                        vibNodes.lfo.stop();
+                        vibNodes.lfoGain.disconnect();
+                    }, duration * 1000);
+                    break;
+
+                case 'strings':
+                    // Two sawtooths for richness (detuned)
+                    const osc2 = audioCtx.createOscillator();
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.value = targetFreq;
+                    osc2.detune.value = 10; // Detune
+
+                    const gain2 = audioCtx.createGain();
+                    gain2.gain.value = 0.3;
+
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start(now);
+                    osc2.stop(now + duration);
+
+                    osc.type = 'sawtooth';
+                    osc.detune.value = -10;
+                    gainNode.gain.value = 0.3;
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.2); // Slow swell
+                    gainNode.gain.linearRampToValueAtTime(0.001, now + duration);
+
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    break;
+
+                case 'sax':
+                    osc.type = 'sawtooth';
+                    // Bandpass filter for brassy sound
+                    const saxFilter = audioCtx.createBiquadFilter();
+                    saxFilter.type = 'bandpass';
+                    saxFilter.frequency.value = 1200;
+                    saxFilter.Q.value = 1;
+
+                    osc.connect(saxFilter);
+                    saxFilter.connect(gainNode);
+
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05); 
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                    if (useSlide) {
+                        osc.frequency.setValueAtTime(lastPlayedFreq, now);
+                        osc.frequency.linearRampToValueAtTime(targetFreq, now + slideTime);
+                    } else {
+                        osc.frequency.setValueAtTime(targetFreq, now);
+                    }
+                    const vibNodesSax = addVibrato(osc, 6, 5);
+                    setTimeout(() => {
+                        vibNodesSax.lfo.stop();
+                        vibNodesSax.lfoGain.disconnect();
+                    }, duration * 1000);
+                    break;
+
+                case 'mandolin':
+                    osc.type = 'square';
+                    // Bright, plucky, short decay
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); 
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + (duration * 0.6)); // Cut off early
+                    
+                    // High pass to remove mud
+                    const mandFilter = audioCtx.createBiquadFilter();
+                    mandFilter.type = 'highpass';
+                    mandFilter.frequency.value = 800;
+                    osc.connect(mandFilter);
+                    mandFilter.connect(gainNode);
+
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    break;
+            }
+
+            // Connect osc (unless already connected in switch case like Violin/Sax)
+            if (instrument !== 'violin' && instrument !== 'sax' && instrument !== 'mandolin' && instrument !== 'strings') {
+                osc.connect(gainNode);
+            }
+            gainNode.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration);
+
+            // Update last frequency for next note (Gamakam continuity)
+            lastPlayedFreq = targetFreq;
+        }
+
+        // --- MIDI Specific Functions (Sustain Playback) ---
+        
+        function startMidiNote(midiNote) {
+            if (!audioCtx) initAudio();
+            if (activeMidiNotes[midiNote]) return; // Note already playing
+
+            const targetFreq = midiToFreq(midiNote);
+            const now = audioCtx.currentTime;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            // Visual Highlight
+            const keyObj = keysDom.find(k => k.midi === midiNote);
+            if (keyObj) {
+                keyObj.element.classList.add('active');
+            }
+
+            // Replicate Instrument Logic for Sustain
+            switch(currentInstrument) {
+                case 'piano':
+                case 'grand piano':
+                    osc.type = 'triangle';
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.6, now + 0.02);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    break;
+
+                case 'flute':
+                    osc.type = 'sine';
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.4, now + 0.1);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    // Continuous Vibrato
+                    const vibF = addVibrato(osc, 5, 6);
+                    activeMidiNotes[midiNote] = { osc, gainNode, lfo: vibF.lfo, lfoGain: vibF.lfoGain };
+                    return; // Handled return
+
+                case 'violin':
+                    osc.type = 'sawtooth';
+                    const vFilter = audioCtx.createBiquadFilter();
+                    vFilter.type = 'lowpass'; vFilter.frequency.value = 3000; vFilter.Q.value = 1;
+                    osc.connect(vFilter); vFilter.connect(gainNode);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    
+                    const vibV = addVibrato(osc, 8, 5);
+                    activeMidiNotes[midiNote] = { osc, gainNode, lfo: vibV.lfo, lfoGain: vibV.lfoGain };
+                    return;
+
+                case 'strings':
+                    // Detuned saws
+                    osc.type = 'sawtooth';
+                    const osc2 = audioCtx.createOscillator();
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.value = targetFreq;
+                    osc2.detune.value = 10;
+                    const g2 = audioCtx.createGain(); g2.gain.value = 0.3;
+                    osc2.connect(g2); g2.connect(audioCtx.destination);
+                    osc2.start(now);
+                    
+                    osc.detune.value = -10;
+                    gainNode.gain.value = 0.3;
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.2);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    activeMidiNotes[midiNote] = { osc, gainNode, osc2 }; // Store second osc to stop later
+                    break;
+
+                case 'sax':
+                    osc.type = 'sawtooth';
+                    const sFilter = audioCtx.createBiquadFilter();
+                    sFilter.type = 'bandpass'; sFilter.frequency.value = 1200; sFilter.Q.value = 1;
+                    osc.connect(sFilter); sFilter.connect(gainNode);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    
+                    const vibS = addVibrato(osc, 6, 5);
+                    activeMidiNotes[midiNote] = { osc, gainNode, lfo: vibS.lfo, lfoGain: vibS.lfoGain };
+                    return;
+
+                case 'mandolin':
+                    osc.type = 'square';
+                    const mFilter = audioCtx.createBiquadFilter();
+                    mFilter.type = 'highpass'; mFilter.frequency.value = 800;
+                    osc.connect(mFilter); mFilter.connect(gainNode);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01);
+                    osc.frequency.setValueAtTime(targetFreq, now);
+                    break;
+            }
+
+            // General connect for instruments without special routing
+            if (currentInstrument !== 'violin' && currentInstrument !== 'sax' && currentInstrument !== 'strings') {
+                osc.connect(gainNode);
+            }
+            gainNode.connect(audioCtx.destination);
+            osc.start(now);
+
+            // Store for release
+            if (!activeMidiNotes[midiNote]) {
+                activeMidiNotes[midiNote] = { osc, gainNode };
+            }
+        }
+
+        function stopMidiNote(midiNote) {
+            const noteData = activeMidiNotes[midiNote];
+            if (!noteData) return;
+
+            const now = audioCtx.currentTime;
+            
+            // Release Envelope
+            const releaseTime = 0.2;
+            noteData.gainNode.gain.cancelScheduledValues(now);
+            noteData.gainNode.gain.setValueAtTime(noteData.gainNode.gain.value, now);
+            noteData.gainNode.gain.exponentialRampToValueAtTime(0.001, now + releaseTime);
+
+            // Stop Oscillator after release
+            noteData.osc.stop(now + releaseTime + 0.1);
+            
+            // Stop secondary osc (strings)
+            if (noteData.osc2) {
+                noteData.osc2.stop(now + releaseTime + 0.1);
+            }
+
+            // Stop LFO (if exists)
+            if (noteData.lfo) {
+                noteData.lfo.stop(now + releaseTime + 0.1);
+                noteData.lfoGain.disconnect();
+            }
+
+            // Visual Unhighlight
+            const keyObj = keysDom.find(k => k.midi === midiNote);
+            if (keyObj) {
+                keyObj.element.classList.remove('active');
+            }
+
+            delete activeMidiNotes[midiNote];
+        }
+
+        // --- MIDI Connection Logic ---
+        async function connectMidi() {
+            if (!navigator.requestMIDIAccess) {
+                document.getElementById('midi-status').innerText = "Not Supported";
+                return;
+            }
+
+            try {
+                midiAccess = await navigator.requestMIDIAccess();
+                const inputs = midiAccess.inputs.values();
+                
+                let inputFound = false;
+                for (let input of inputs) {
+                    midiInput = input;
+                    midiInput.onmidimessage = handleMidiMessage;
+                    inputFound = true;
+                    break; // Use --> first one found
+                }
+
+                if (inputFound) {
+                    document.getElementById('midi-status').innerText = "Connected: " + midiInput.name;
+                    document.getElementById('midi-status').classList.add('connected');
+                    document.getElementById('btn-midi-connect').innerText = "Connected";
+                    document.getElementById('btn-midi-connect').disabled = true;
+                } else {
+                    document.getElementById('midi-status').innerText = "No Device Found";
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('midi-status').innerText = "Error";
+            }
+        }
+
+        function handleMidiMessage(message) {
+            const command = message.data[0];
+            const note = message.data[1];
+            const velocity = (message.data.length > 2) ? message.data[2] : 0;
+            const isNoteOn = (command & 0xf0) === 0x90 && velocity > 0;
+            const isNoteOff = (command & 0xf0) === 0x80 || ((command & 0xf0) === 0x90 && velocity === 0);
+
+            if (isNoteOn) {
+                startMidiNote(note);
+            } else if (isNoteOff) {
+                stopMidiNote(note);
+            }
+        }
+
+
+        // --- Visuals & DOM ---
+        const container = document.getElementById('piano-container');
+        const keysDom = []; 
+
+        function createPiano() {
+            let whiteKeyIndex = 0;
+            
+            for (let o = 0; o < OCTAVES; o++) {
+                const octaveNum = START_OCTAVE + o;
+                const baseMidi = 12 * (octaveNum + 1);
+                
+                for (let i = 0; i < 12; i++) {
+                    const noteName = NOTES[i];
+                    const isBlack = noteName.includes("#");
+                    const midiNote = baseMidi + i;
+
+                    const keyEl = document.createElement('div');
+                    keyEl.dataset.midi = midiNote;
+                    keyEl.dataset.note = i; 
+                    keyEl.innerText = isBlack ? "" : noteName; 
+
+                    if (isBlack) {
+                        keyEl.className = 'key black-key';
+                        keyEl.style.left = `${(whiteKeyIndex * WHITE_KEY_WIDTH) - (BLACK_KEY_WIDTH / 2)}px`;
+                    } else {
+                        keyEl.className = 'key white-key';
+                        keyEl.style.left = `${whiteKeyIndex * WHITE_KEY_WIDTH}px`;
+                        whiteKeyIndex++;
+                    }
+
+                    container.appendChild(keyEl);
+                    keysDom.push({ element: keyEl, midi: midiNote, noteIndex: i });
+                }
+            }
+            container.style.width = `${whiteKeyIndex * WHITE_KEY_WIDTH}px`;
+        }
+
+        function populateDropdowns() {
+            const rootSelect = document.getElementById('root-select');
+            const scaleSelect = document.getElementById('scale-select');
+
+            NOTES.forEach((note, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.innerText = note;
+                rootSelect.appendChild(opt);
+            });
+
+            SCALES.forEach((scale, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.innerText = scale.name;
+                scaleSelect.appendChild(opt);
+            });
+        }
+
+        function updateUI() {
+            const rootName = NOTES[currentRootIdx];
+            const scaleData = SCALES[currentScaleIdx];
+
+            // Update Text Displays
+            document.getElementById('display-scale-name').innerText = `${rootName} ${scaleData.name}`;
+            document.getElementById('display-raga-name').innerText = `${scaleData.raga} - Sa: ${rootName}`;
+
+            // Update Dropdowns (Sync with keyboard arrows)
+            document.getElementById('root-select').value = currentRootIdx;
+            document.getElementById('scale-select').value = currentScaleIdx;
+            document.getElementById('instrument-select').value = currentInstrument;
+
+            // Update Buttons
+            const playBtn = document.getElementById('btn-play');
+            const stopBtn = document.getElementById('btn-stop');
+            
+            if (isPlaying) {
+                playBtn.disabled = true;
+                stopBtn.disabled = false;
+            } else {
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+
+            // Highlight Roots
+            keysDom.forEach(k => {
+                const el = k.element;
+                if (k.noteIndex === currentRootIdx) {
+                    el.classList.add('root');
+                } else {
+                    el.classList.remove('root');
+                }
+                if (!isPlaying && !activeMidiNotes[k.midi]) el.classList.remove('active');
+            });
+        }
+
+        // --- Logic ---
+        function getScaleSequence(rootIdx, intervals) {
+            const middleC = 60; 
+            const startMidi = middleC + rootIdx;
+
+            let sequence = [];
+            let semitoneOffset = 0;
+            sequence = [startMidi]; // Root
+
+            for (let interval of intervals) {
+                semitoneOffset += interval;
+                sequence.push(startMidi + semitoneOffset);
+            }
+
+            // Down (excluding top note)
+            for (let i = sequence.length - 2; i >= 0; i--) {
+                sequence.push(sequence[i]);
+            }
+            return sequence;
+        }
+
+        async function playSequence() {
+            if (isPlaying) return;
+            isPlaying = true;
+            stopRequested = false;
+            initAudio(); 
+            lastPlayedFreq = 0; // Reset slide start
+
+            const scaleData = SCALES[currentScaleIdx];
+            const sequence = getScaleSequence(currentRootIdx, scaleData.intervals);
+            
+            const beatDuration = 60 / playbackSpeed;
+            const noteDuration = beatDuration * 0.8; 
+
+            updateUI();
+
+            for (let midi of sequence) {
+                if (stopRequested) break;
+
+                const keyObj = keysDom.find(k => k.midi === midi);
+                
+                if (keyObj) {
+                    keyObj.element.classList.add('active');
+                }
+
+                playTone(midi, noteDuration, currentInstrument); 
+
+                await new Promise(r => setTimeout(r, (noteDuration * 1000)));
+
+                if (keyObj) {
+                    keyObj.element.classList.remove('active');
+                }
+            }
+
+            isPlaying = false;
+            stopRequested = false;
+            lastPlayedFreq = 0; // Reset
+            updateUI();
+        }
+
+        function stopSequence() {
+            if(isPlaying) {
+                stopRequested = true;
+            }
+        }
+
+        // --- Input Handling ---
+        
+        // Keyboard
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+
+            switch(e.code) {
+                case 'ArrowLeft':
+                    currentRootIdx = (currentRootIdx - 1 + 12) % 12;
+                    updateUI();
+                    break;
+                case 'ArrowRight':
+                    currentRootIdx = (currentRootIdx + 1) % 12;
+                    updateUI();
+                    break;
+                case 'ArrowUp':
+                    currentScaleIdx = (currentScaleIdx - 1 + SCALES.length) % SCALES.length;
+                    updateUI();
+                    break;
+                case 'ArrowDown':
+                    currentScaleIdx = (currentScaleIdx + 1) % SCALES.length;
+                    updateUI();
+                    break;
+                case 'Space':
+                    e.preventDefault();
+                    if (!isPlaying) playSequence();
+                    break;
+            }
+        });
+
+        // Dropdowns
+        document.getElementById('root-select').addEventListener('change', (e) => {
+            currentRootIdx = parseInt(e.target.value);
+            updateUI();
+        });
+
+        document.getElementById('scale-select').addEventListener('change', (e) => {
+            currentScaleIdx = parseInt(e.target.value);
+            updateUI();
+        });
+
+        document.getElementById('instrument-select').addEventListener('change', (e) => {
+            currentInstrument = e.target.value;
+            updateUI();
+        });
+
+        // UI Buttons & Slider
+        document.getElementById('btn-play').addEventListener('click', playSequence);
+        document.getElementById('btn-stop').addEventListener('click', stopSequence);
+        document.getElementById('btn-midi-connect').addEventListener('click', connectMidi);
+        
+        const bpmSlider = document.getElementById('bpm-slider');
+        const bpmDisplay = document.getElementById('bpm-display');
+        
+        bpmSlider.addEventListener('input', (e) => {
+            playbackSpeed = parseInt(e.target.value);
+            bpmDisplay.innerText = playbackSpeed;
+        });
+
+        // --- Initialization ---
+        createPiano();
+        populateDropdowns();
+        updateUI();
+
+    </script>
+</body>
+</html>
